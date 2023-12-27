@@ -1,0 +1,86 @@
+
+// Developer: Forex Robot Easy Team
+// Developer's site: forexroboteasy.com
+
+// Secure Set MT4 Trading Bot
+
+// Define the necessary variables
+input double StopLoss = 50; // Default stop loss value
+input double TakeProfit = 100; // Default take profit value
+
+// Function to initiate a trade with trailing stop
+void OpenTrade(double price, double stopLoss, double takeProfit)
+{
+    // Place the trade order at the specified price
+    OrderSend(Symbol(), OP_BUY, 1, price, 0, stopLoss, takeProfit, 'Secure Set MT4', MagicNumber, 0, Green);
+    
+    // Enable trailing stop for the trade
+    TrailingStop();
+}
+
+// Function to enable trailing stop for the trade
+void TrailingStop()
+{
+    while (OrderSelect(0, SELECT_BY_POS, MODE_TRADES))
+    {
+        if (OrderType() == OP_BUY || OrderType() == OP_SELL)
+        {
+            // Calculate the trailing stop level based on the current market conditions
+            double trailingStopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL);
+            
+            // Set the trailing stop level for the trade
+            OrderModify(OrderTicket(), OrderOpenPrice(), OrderStopLoss(), OrderTakeProfit(), 0, trailingStopLevel);
+        }
+    }
+}
+
+// Function to conclude a trade
+void CloseTrade(int ticket)
+{
+    // Close the trade with the specified ticket number
+    OrderClose(ticket, OrderLots(), Bid, 0, Red);
+}
+
+// Function to work with virtual stop loss and take profit
+void VirtualStopLossTakeProfit()
+{
+    // Calculate the virtual stop loss and take profit levels based on the current market conditions
+    double virtualStopLoss = Bid - StopLoss*Point;
+    double virtualTakeProfit = Ask + TakeProfit*Point;
+    
+    // Set the virtual stop loss and take profit levels for the trade
+    OrderModify(OrderTicket(), OrderOpenPrice(), virtualStopLoss, virtualTakeProfit, 0, Blue);
+}
+
+// Function to optimize the code for high-volatility forex pairs
+void OptimizeForHighVolatility()
+{
+    // Implement optimizations specific to high-volatility forex pairs
+    // ...
+}
+
+// Entry point of the program
+void OnStart()
+{
+    // Enable trailing stop for both pending and real orders
+    TrailingStop();
+    
+    // Set stop loss and take profit separately for each order type
+    if (OrderType() == OP_BUY)
+    {
+        OrderModify(OrderTicket(), OrderOpenPrice(), StopLoss, TakeProfit, 0, Green);
+    }
+    else if (OrderType() == OP_SELL)
+    {
+        OrderModify(OrderTicket(), OrderOpenPrice(), StopLoss, TakeProfit, 0, Red);
+    }
+    
+    // Work with virtual stop loss and take profit
+    VirtualStopLossTakeProfit();
+    
+    // Optimize the code for high-volatility forex pairs
+    OptimizeForHighVolatility();
+    
+    // Close the trade with the specified ticket number
+    CloseTrade(OrderTicket());
+}
